@@ -1,0 +1,24 @@
+project:
+  name: ai_stock_picker
+  data_dir: ./data
+  log_dir: ./logs
+forum:
+  base_url: https://forum.valuepickr.com/c/stock-opportunities
+  update_frequency: weekly
+financial_api:
+  provider: eodhd
+  api_key: ''
+  update_frequency: weekly
+version: 1
+formatters:
+  simple:
+    format: '%(asctime)s - %(levelname)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: simple
+    level: INFO
+root:
+  handlers:
+  - console
+  level: INFO

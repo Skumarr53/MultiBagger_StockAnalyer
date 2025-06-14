@@ -1,0 +1,21 @@
+defaults:
+  - _self_
+  - logging
+  - comp_suf
+
+project:
+  name: "ai_stock_picker"
+  data_dir: "./data"
+  log_dir: "./logs"
+
+forum:
+  base_url: "https://forum.valuepickr.com/c/stock-opportunities"
+  update_frequency: "weekly"
+  max_threads: null
+
+financial_api:
+  provider: "eodhd"
+  api_key: ""
+  update_frequency: "weekly"
+# config.yaml
+
