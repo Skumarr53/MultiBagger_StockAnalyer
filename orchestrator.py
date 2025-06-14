@@ -34,6 +34,7 @@ class StockAnalysisPipeline:
             uri=os.getenv("NEO4J_URI"),
             user=os.getenv("NEO4J_USER"),
             password=os.getenv("NEO4J_PASSWORD"),
+            start_cmd=["neo4j", "start"],
         )
         self.rag = RAGPipeline()
 

@@ -1,15 +1,15 @@
 """
 Financial Data Fetcher Module
 ----------------------------
-Fetches company fundamentals/metrics via financial data APIs (e.g., EODHD, Yahoo Finance/yfinance).
+Fetches company fundamentals/metrics via financial data APIs (e.g., EODHD via the official package, Yahoo Finance/yfinance).
 Modular, extensible, robust error handling and logging.
 
-- Initial implementation: EODHD and yfinance (for Indian tickers)
+- Uses the eodhd Python client for fundamental metrics
 - Can be extended for Screener.in or RapidAPI integrations
 """
 from typing import Dict, Optional
-import requests
 import yfinance as yf
+from eodhd import APIClient
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -20,7 +20,7 @@ class FinancialDataFetcher:
     """
     def __init__(self, eodhd_api_key: Optional[str] = None):
         self.eodhd_api_key = eodhd_api_key
-        self.eodhd_base_url = "https://eodhd.com/api/fundamentals/"
+        self.eodhd_client = APIClient(api_key=eodhd_api_key) if eodhd_api_key else None
 
     def fetch_eodhd(self, symbol: str, exchange: str = "NSE") -> Dict:
         """
@@ -31,13 +31,12 @@ class FinancialDataFetcher:
         Returns:
             Dict: Fundamentals data (or empty dict on error)
         """
-        url = f"{self.eodhd_base_url}{symbol}.{exchange}?api_token={self.eodhd_api_key}&fmt=json"
+        if not self.eodhd_client:
+            return {}
         try:
-            resp = requests.get(url, timeout=15)
-            resp.raise_for_status()
-            data = resp.json()
+            data = self.eodhd_client.get_fundamental_equity_details(symbol, exchange)
             logger.info(f"Fetched EODHD data for {symbol}.{exchange}")
-            return data
+            return data or {}
         except Exception as e:
             logger.error(f"Failed to fetch EODHD data for {symbol}.{exchange}: {e}")
             return {}

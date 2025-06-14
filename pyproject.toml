@@ -16,5 +16,6 @@ dependencies = [
     "sentence-transformers>=4.1.0",
     "spacy>=3.8.7",
     "transformers>=4.52.4",
+    "eodhd>=1.0.32",
     "yfinance>=0.2.62",
 ]

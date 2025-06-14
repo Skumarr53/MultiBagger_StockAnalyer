@@ -7,6 +7,10 @@ Builds and updates a property graph (Neo4j) to capture companies, metrics, senti
 """
 from typing import Dict, List, Optional
 from py2neo import Graph, Node, Relationship
+import socket
+import subprocess
+import time
+from urllib.parse import urlparse
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -15,13 +19,29 @@ class KnowledgeGraphBuilder:
     """
     Builds and updates the knowledge graph for stocks, metrics, sentiment, and peer links.
     """
-    def __init__(self, uri: str, user: str, password: str):
+    def __init__(self, uri: str, user: str, password: str, start_cmd: Optional[list] = None):
         try:
+            if not self._check_running(uri) and start_cmd:
+                logger.info("Neo4j not running. Attempting to start server...")
+                subprocess.Popen(start_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                time.sleep(5)
             self.graph = Graph(uri, auth=(user, password))
             logger.info(f"Connected to Neo4j at {uri}")
         except Exception as e:
             logger.error(f"Neo4j connection failed: {e}")
             raise
+
+    def _check_running(self, uri: str) -> bool:
+        parsed = urlparse(uri)
+        host = parsed.hostname
+        port = parsed.port
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(2)
+            try:
+                sock.connect((host, port))
+                return True
+            except Exception:
+                return False
 
     def upsert_company(self, symbol: str, name: Optional[str] = None, sector: Optional[str] = None):
         """
