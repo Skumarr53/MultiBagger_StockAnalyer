@@ -2,7 +2,7 @@
 Summarization Module
 -------------------
 Production-grade module for abstractive summarization using Hugging Face Transformers.
-Default: BART-large (state-of-the-art for English summarization).
+Default: Pegasus-XSum which performs well on news/financial text.
 
 Why BART/T5/Pegasus?
 - All three are top-performers for abstractive summarization tasks (benchmarked on CNN/DailyMail, XSum, etc.).
@@ -10,7 +10,7 @@ Why BART/T5/Pegasus?
 - T5: Highly flexible, performs well for multi-lingual/transfer cases.
 - Pegasus: State-of-the-art for extreme summarization (distills large docs into very short summaries).
 
-Here, BART-large is chosen for default: best results for long-form, discussion-style text, and mature Hugging Face support.
+Here, Pegasus-XSum is chosen for default: strong results on short news style text, suitable for forum posts.
 """
 import os
 from typing import List, Optional
@@ -23,7 +23,7 @@ class Summarizer:
     """
     Abstractive summarizer for forum discussions, using Hugging Face Transformers.
     """
-    def __init__(self, model_name: str = "facebook/bart-large-cnn", device: Optional[int] = None):
+    def __init__(self, model_name: str = "google/pegasus-xsum", device: Optional[int] = None):
         """
         Args:
             model_name: Hugging Face model hub name.
@@ -56,12 +56,17 @@ class Summarizer:
         if len(text) < 100:
             logger.warning("Not enough text to summarize; returning raw input.")
             return text
-        # Hugging Face models have a max token limit (1024 for BART-large)
-        text = text[:3500]  # Keep under 1024 tokens roughly
+
+        # Split text into manageable chunks instead of truncating
+        chunk_size = 3000
+        chunks = [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+        summaries = []
         try:
-            summary = self.summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)
-            result = summary[0]["summary_text"]
-            logger.info(f"Generated summary ({len(result.split())} words)")
+            for chunk in chunks:
+                out = self.summarizer(chunk, max_length=max_length, min_length=min_length, do_sample=False)
+                summaries.append(out[0]["summary_text"])
+            result = " ".join(summaries)
+            logger.info(f"Generated summary from {len(chunks)} chunk(s) ({len(result.split())} words)")
             return result
         except Exception as e:
             logger.error(f"Summarization failed: {e}")
